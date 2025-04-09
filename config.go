@@ -65,6 +65,22 @@ func (s *SQLBody) getWithWhereUnknown(v string, u string) (t string) {
 	return strings.ReplaceAll(v, unknownWhere, "")
 }
 
+func (s *SQLBody) getWithWhereNull(v string, n []*NullColumn) (t string) {
+	if len(n) > 0 {
+		var whereSQL strings.Builder
+		for _, column := range n {
+			if column.IsNull {
+				whereSQL.WriteString(fmt.Sprintf("%s %s is null ", column.Operator, column.ColumnName))
+			} else {
+				whereSQL.WriteString(fmt.Sprintf("%s %s is not null ", column.Operator, column.ColumnName))
+			}
+
+		}
+		return strings.ReplaceAll(v, whereNullCol, whereSQL.String())
+	}
+	return strings.ReplaceAll(v, whereNullCol, "")
+}
+
 /*
 *
 第1参数: sql文本
@@ -179,7 +195,7 @@ func (s *SQLBody) getWithColumn(v string, c []string) (t string) {
 	return v
 }
 
-func (s *SQLBody) getSelectForDatabase(k string, dt string, r []*ResultColumn, p []*PredicateColumn, o []*OrderColumn, page bool, u string) (t string, e error) {
+func (s *SQLBody) getSelectForDatabase(k string, dt string, r []*ResultColumn, p []*PredicateColumn, n []*NullColumn, o []*OrderColumn, page bool, u string) (t string, e error) {
 	v, ok := s.text[k]
 	if !ok {
 		return "", fmt.Errorf("sql text %v key does not exist", k)
@@ -194,6 +210,9 @@ func (s *SQLBody) getSelectForDatabase(k string, dt string, r []*ResultColumn, p
 
 	// 生成微词条件语句
 	v = s.getWithWhere(v, p, 1)
+
+	// 生成谓词条件列是null的语句
+	v = s.getWithWhereNull(v, n)
 
 	// 生成未知语句
 	v = s.getWithWhereUnknown(v, u)
@@ -314,7 +333,7 @@ func (s *SQLBody) GetSelect(k string, opts ...SelectOption) (string, error) {
 		}
 	}
 
-	return s.getSelectForDatabase(k, s.dbType, conf.result, conf.predicate, conf.order, conf.Page, conf.unknown)
+	return s.getSelectForDatabase(k, s.dbType, conf.result, conf.predicate, conf.isNullCol, conf.order, conf.Page, conf.unknown)
 }
 
 func (s *SQLBody) GetPublicSelect(tableName string, opts ...SelectOption) (string, error) {
@@ -325,7 +344,7 @@ func (s *SQLBody) GetPublicSelect(tableName string, opts ...SelectOption) (strin
 		}
 	}
 
-	str, err := s.getSelectForDatabase(InternalSelect, s.dbType, conf.result, conf.predicate, conf.order, conf.Page, conf.unknown)
+	str, err := s.getSelectForDatabase(InternalSelect, s.dbType, conf.result, conf.predicate, conf.isNullCol, conf.order, conf.Page, conf.unknown)
 	if err != nil {
 		return "", err
 	}

@@ -7,7 +7,7 @@ import (
 
 func main() {
 
-	var addUserOpt []sqlbuilder.InsertOption
+	/*var addUserOpt []sqlbuilder.InsertOption
 	addUserOpt = append(addUserOpt, sqlbuilder.SetInsertColumn("role_name"))
 	addUserOpt = append(addUserOpt, sqlbuilder.SetInsertColumn("role_name"))
 	addUserOpt = append(addUserOpt, sqlbuilder.SetInsertColumn("role_name"))
@@ -74,5 +74,16 @@ func main() {
 	t, e = sqlbuilder.SQLB.GetPublicDelete("lender_new01", ss...)
 
 	fmt.Println(t, e)
+	*/
+	var cs1 []sqlbuilder.SelectOption
+	cs1 = append(cs1, sqlbuilder.SetSelectResultColumn("id"))
+
+	cs1 = append(cs1, sqlbuilder.SetSelectWhereColumn("and", "aaaaaaaaaaaaaaaaaa", "="))
+	cs1 = append(cs1, sqlbuilder.SetSelectWhereColumnIsNull("and", "asdfsadfsgdsfgdsfg"))
+	cs1 = append(cs1, sqlbuilder.SetSelectWhereColumn("and", "s2", "="))
+	cs1 = append(cs1, sqlbuilder.SetSelectWhereColumnNotNull("or", "asdfsadfsa"))
+	sqlbuilder.SQLB.SetDBType("oracle")
+	t, e := sqlbuilder.SQLB.GetSelect(sqlbuilder.InternalSelect, cs1...)
+	fmt.Println("====================", t, e)
 
 }

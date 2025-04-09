@@ -22,6 +22,12 @@ type OrderColumn struct {
 	Order      string // 排序. 不为空则排序. 但是排序必须为asc desc
 }
 
+type NullColumn struct {
+	Operator   string // 逻辑操作符and、or
+	ColumnName string // 列名
+	IsNull     bool   // 是否为空
+}
+
 type InsertConfig struct {
 	columnWithInsert []string // insert 列名数据
 }
@@ -38,6 +44,7 @@ type UpdateConfig struct {
 type SelectConfig struct {
 	result    []*ResultColumn    // select 返回列
 	predicate []*PredicateColumn // select where条件数据
+	isNullCol []*NullColumn      // select where条件数据, 用于判断列是否是null
 	order     []*OrderColumn     // select 排序, 必须不可以是count
 	unknown   string             // 用于未知的where条件. 如复杂的where条件, 而本函数实现不了. 则可以使用未知where条件来实现.
 	Page      bool               // select 是否分页
@@ -66,6 +73,28 @@ func SetSelectWhereColumn(Operator, ColumnName, Expression string) SelectOption 
 			return fmt.Errorf("incorrect sql expression")
 		}
 		c.predicate = append(c.predicate, &PredicateColumn{Operator: Operator, ColumnName: ColumnName, Expression: Expression})
+		return nil
+	}
+}
+
+// SetSelectWhereColumnIsNull 设置查询where
+func SetSelectWhereColumnIsNull(Operator, ColumnName string) SelectOption {
+	return func(c *SelectConfig) error {
+		if len(Operator) == 0 || len(ColumnName) == 0 {
+			return fmt.Errorf("incorrect sql expression")
+		}
+		c.isNullCol = append(c.isNullCol, &NullColumn{Operator: Operator, ColumnName: ColumnName, IsNull: true})
+		return nil
+	}
+}
+
+// SetSelectWhereColumnNotNull 设置查询where
+func SetSelectWhereColumnNotNull(Operator, ColumnName string) SelectOption {
+	return func(c *SelectConfig) error {
+		if len(Operator) == 0 || len(ColumnName) == 0 {
+			return fmt.Errorf("incorrect sql expression")
+		}
+		c.isNullCol = append(c.isNullCol, &NullColumn{Operator: Operator, ColumnName: ColumnName, IsNull: false})
 		return nil
 	}
 }
