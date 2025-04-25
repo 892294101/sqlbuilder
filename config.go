@@ -20,8 +20,6 @@ type SQLBody struct {
 	dbType string
 }
 
-var SQLB *SQLBody
-
 func (s *SQLBody) getBindMark(i int) string {
 	if strings.EqualFold(s.dbType, "mysql") {
 		return fmt.Sprintf("%s", "?")
@@ -435,17 +433,25 @@ func (s *SQLBody) InitSQLText(key, text string) {
 	s.text[key] = text
 }
 
-func (s *SQLBody) SetDBType(dbType string) {
-	s.dbType = dbType
+func (s *SQLBody) SetTypeForMySQL() {
+	s.dbType = "mysql"
 }
 
-func init() {
-	SQLB = new(SQLBody)
-	SQLB.text = make(map[string]string)
-	SQLB.SetDBType("mysql")
-	SQLB.InitSQLText(InternalInsert, InternalInsertText)
-	SQLB.InitSQLText(InternalDelete, InternalDeleteText)
-	SQLB.InitSQLText(InternalUpdate, InternalUpdateText)
-	SQLB.InitSQLText(InternalSelect, InternalSelectText)
-	return
+func (s *SQLBody) SetTypeForOracle() {
+	s.dbType = "oracle"
+}
+
+func (s *SQLBody) GetDBType() string {
+	return s.dbType
+}
+
+func NewSQLBody() *SQLBody {
+	s := new(SQLBody)
+	s.text = make(map[string]string)
+	s.SetTypeForMySQL()
+	s.InitSQLText(InternalInsert, InternalInsertText)
+	s.InitSQLText(InternalDelete, InternalDeleteText)
+	s.InitSQLText(InternalUpdate, InternalUpdateText)
+	s.InitSQLText(InternalSelect, InternalSelectText)
+	return s
 }
